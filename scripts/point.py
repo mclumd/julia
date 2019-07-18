@@ -27,7 +27,13 @@ soundhandle = SoundClient()
 rospy.init_node('juliademo')
 rs=baxter_interface.RobotEnable()
 current_actions=[]
+alma_comm=rospy.Publisher('alma_in', String, queue_size=10)
 
+
+def alma(data):
+    rospy.loginfo(data.data)
+    print(data.data)
+    eval(data.data)
 
 def main():
     rospy.on_shutdown(clean_shutdown)
@@ -43,8 +49,10 @@ def main():
     """
     #soundhandle.say("My name is bob", voice)
     global listener
+
     listener = rospy.Subscriber('/recognizer/output', String, point)
     rospy.Subscriber("actions", String, update)
+    rospy.Subscriber("alma", String, alma)
 
     rospy.spin()
 
@@ -77,8 +85,16 @@ def point(data):
     rospy.loginfo(data.data)
     rospy.loginfo(current_actions)
     if 'julia' in data.data:
-        raise_arm()
-        speak("I see julia and am pointing at her")
+
+        alma_comm.publish("hearing(julia)")
+        if not "talking" in current_actions:
+            alma_comm.publish("not(talking)")
+
+
+        #raise_arm()
+        #speak("I see julia and am pointing at her")
+
+
         #soundhandle.say("I see julia and am pointing at her", voice)
 
         #baxter_interface.Limb('right').move_to_joint_positions({'right_e0': -0.013351768775252066, 'right_e1': -0.009032078877376396, 'right_s0': -0.0023561944897503642, 'right_s1': 0.0019634954081253035, 'right_w0': 0.003141592653000486, 'right_w1': 0.0023561944897503642, 'right_w2': 0.0019634954081253035})

@@ -4,6 +4,7 @@
     <param name="dict" value="$(find julia)/config/julia_commands.dic"/>
   </node>
   <node name="soundplay_node" pkg="sound_play" type="soundplay_node.py"/>
+  <node name="vision" pkg="julia" type="detect.py"/>
   <node name="julia_demo" pkg="julia" type="point.py" output="screen"/>
 </launch>
 

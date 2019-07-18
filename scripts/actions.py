@@ -8,6 +8,7 @@ from sound_play.libsoundplay import SoundClient
 
 pub = rospy.Publisher('actions', String, queue_size=10)
 
+
 def raise_arm():
     pub.publish("raising arm")
     return baxter_interface.Limb('right').move_to_joint_positions(
@@ -17,7 +18,7 @@ def raise_arm():
     pub.publish("done raising arm")
 
 
-def speak(text):
+def speak(text="I see julia and am pointing at her"):
     pub.publish("talking")
     voice = 'voice_kal_diphone'
     soundhandle = SoundClient()
