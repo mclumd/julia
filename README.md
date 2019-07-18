@@ -31,3 +31,7 @@ source /opt/ros/indigo/setup.bash
 source ~/ros_ws/devel/setup.bash
 ```
 or add them to your `~/.bashrc`
+
+## Vision
+
+Read the documentation for [YOLO](https://github.com/mclumd/yolo) to run the detection script.
