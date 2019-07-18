@@ -32,6 +32,10 @@ source ~/ros_ws/devel/setup.bash
 ```
 or add them to your `~/.bashrc`
 
-## Vision
+## Included Modules
 
+#### Vision
 Read the documentation for [YOLO](https://github.com/mclumd/yolo) to run the detection script.
+
+#### ALMA
+You might need to rebuild [ALMA](https://github.com/mclumd/alma-2.0) if you modify the `alma.c` file.
