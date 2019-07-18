@@ -20,6 +20,7 @@ cd ~/ros_ws
 . baxter.sh
 roslaunch julia demo.launch
 ```
+Note that to run anything in the `scripts` directory using `rosrun`, you will need to make the python files executable.
 
 
 ## Possible Issues
