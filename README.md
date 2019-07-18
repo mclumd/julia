@@ -21,6 +21,7 @@ cd ~/ros_ws
 roslaunch julia demo.launch
 ```
 Note that to run anything in the `scripts` directory using `rosrun`, you will need to make the python files executable.
+When writing new python files, `#!/usr/bin/env python` must be included at the beginning of the file.
 
 
 ## Possible Issues
