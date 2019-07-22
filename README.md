@@ -36,6 +36,7 @@ or add them to your `~/.bashrc`
 
 #### Vision
 Read the documentation for [YOLO](https://github.com/mclumd/yolo) to run the detection script.
+Download [yolov3.weights](https://pjreddie.com/media/files/yolov3.weights) into the `/scripts` directory
 
 #### ALMA
 You might need to rebuild [ALMA](https://github.com/mclumd/alma-2.0) if you modify the `alma.c` file.
