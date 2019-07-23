@@ -9,9 +9,7 @@
 // Initialize global variable (declared in alma_formula header) to count up variable IDs
 long long variable_id_count = 0;
 
-
 int main(int argc, char **argv) {
-  setvbuf(stdout, NULL, _IONBF, 0);
   if (argc <= 1) {
     printf("Please run with an input file argument.\n");
     return 0;
