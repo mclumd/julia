@@ -6,6 +6,7 @@ import scipy.misc
 import signal
 import numpy as np
 import os
+from gaze_tracking import GazeTracking
 
 import rospy
 import cv_bridge
@@ -55,10 +56,10 @@ def draw_bounding_box(img, class_id, confidence, x, y, x_plus_w, y_plus_h):
     label = str(classes[class_id]) + " " + str(round(confidence, 3))
     color = COLORS[class_id]
     cv2.rectangle(img, (x, y, x_plus_w - x, y_plus_h - y), color, 2)
-    cv2.putText(img, label, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+    cv2.putText(img, label, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
 
-def process_image(image, depth, net):
+def process_image(image, depth, net, gaze):
     width = image.shape[1]
     height = image.shape[0]
 
@@ -122,6 +123,18 @@ def process_image(image, depth, net):
         print(image[int((y + h / 2))][int((x + w / 2))])
         distance = d[3] / 255
         """
+        if str(classes[class_ids[i]])=="person":
+            gaze.refresh(image)
+
+            image = gaze.annotated_frame()
+
+            #cv2.putText(image, "Horizontal:  " + str(gaze.horizontal_ratio()), (90, 200), cv2.FONT_HERSHEY_DUPLEX, 0.9,
+            #            (147, 58, 31), 1)
+            #cv2.putText(image, "Vertical: " + str(gaze.vertical_ratio()), (90, 235), cv2.FONT_HERSHEY_DUPLEX, 0.9,
+             #           (147, 58, 31), 1)
+            if gaze.pupils_located:
+                cv2.putText(image, "pupil h: "+str(round(gaze.horizontal_ratio(),3))+" w: "+str(round(gaze.vertical_ratio(),3)), (int(x + w-200), y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS[class_ids[i]], 2)
+
         pub.publish(
             "saw(" + str(classes[class_ids[i]]) + "," + str(round(confidences[i], 3)) + "," + str(int(x)) + "," + str(
                 int(y)) + "," + str(int(w)) + "," + str(int(h)) + ")")
@@ -177,7 +190,7 @@ print("Kinect serial: %s" % kinect.serial_number)
 print("Kinect firmware: %s" % kinect.firmware_version)
 
 # What's a registration?
-print(kinect.ir_camera_params)
+#print(kinect.ir_camera_params)
 
 registration = pyfreenect2.Registration(kinect.ir_camera_params, kinect.color_camera_params)
 # registration = pyfreenect2.Registration(kinect.color_camera_params, kinect.ir_camera_params)
@@ -191,6 +204,7 @@ registration = pyfreenect2.Registration(kinect.ir_camera_params, kinect.color_ca
 
 # read pre-trained model and config file
 net = cv2.dnn.readNet(os.path.join(__location__, WEIGHTS), os.path.join(__location__, CONFIG))
+gaze = GazeTracking()
 
 while not shutdown:
     frames = frameListener.waitForNewFrame()
@@ -214,7 +228,7 @@ while not shutdown:
 
     # process_image(cv2.resize(bgr_frame_new,(1024,600)))
 
-    process_image(bgr_frame_new, depth_frame, net)
+    process_image(bgr_frame_new, depth_frame, net, gaze)
 
     # TODO Display the frames w/ OpenCV
     # cv2.imshow("RGB", bgr_frame_resize)
