@@ -1,3 +1,4 @@
 [submodule "alma"]
 	path = alma
 	url = https://github.com/mclumd/alma-2.0.git
+    branch = master
