@@ -2,7 +2,6 @@
 
 import pyfreenect2
 import cv2
-import scipy.misc
 import signal
 import numpy as np
 import os
@@ -76,7 +75,7 @@ def process_image(image, depth, net, gaze):
     class_ids = []
     confidences = []
     boxes = []
-    # for each detetion from each output layer
+    # for each detection from each output layer
     # get the confidence, class id, bounding box params
     # and ignore weak detections (confidence < 0.5)
     for out in outs:
@@ -104,10 +103,10 @@ def process_image(image, depth, net, gaze):
     for i in indices:
         i = i[0]
         box = boxes[i]
-        x = box[0]
-        y = box[1]
-        w = box[2]
-        h = box[3]
+        x = max(0, box[0])
+        y = max(0, box[1])
+        w = max(0, box[2])
+        h = max(0, box[3])
         """
         print(depth.shape)
         d = depth[int((y + h / 2) * 424 / 1080)][int((x + w / 2) * 512 / 1920)]
@@ -123,17 +122,15 @@ def process_image(image, depth, net, gaze):
         print(image[int((y + h / 2))][int((x + w / 2))])
         distance = d[3] / 255
         """
-        if str(classes[class_ids[i]])=="person":
-            gaze.refresh(image)
+        if str(classes[class_ids[i]]) == "person":
+            gaze.refresh(image[y:y + h, x:x + w])
 
-            image = gaze.annotated_frame()
+            image[y:y + h, x:x + w] = gaze.annotated_frame()
 
-            #cv2.putText(image, "Horizontal:  " + str(gaze.horizontal_ratio()), (90, 200), cv2.FONT_HERSHEY_DUPLEX, 0.9,
-            #            (147, 58, 31), 1)
-            #cv2.putText(image, "Vertical: " + str(gaze.vertical_ratio()), (90, 235), cv2.FONT_HERSHEY_DUPLEX, 0.9,
-             #           (147, 58, 31), 1)
             if gaze.pupils_located:
-                cv2.putText(image, "pupil h: "+str(round(gaze.horizontal_ratio(),3))+" w: "+str(round(gaze.vertical_ratio(),3)), (int(x + w-200), y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS[class_ids[i]], 2)
+                cv2.putText(image, "pupil x: " + str(round(gaze.horizontal_ratio(), 3)) + " y: " + str(
+                    round(gaze.vertical_ratio(), 3)), (int(x + w - 200), y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                            COLORS[class_ids[i]], 2)
 
         pub.publish(
             "saw(" + str(classes[class_ids[i]]) + "," + str(round(confidences[i], 3)) + "," + str(int(x)) + "," + str(
@@ -185,20 +182,12 @@ kinect.setDeepConfiguration(
 # Start recording
 kinect.start()
 
-# Print useful info
-print("Kinect serial: %s" % kinect.serial_number)
-print("Kinect firmware: %s" % kinect.firmware_version)
-
 # What's a registration?
-#print(kinect.ir_camera_params)
+# print(kinect.ir_camera_params)
 
 registration = pyfreenect2.Registration(kinect.ir_camera_params, kinect.color_camera_params)
 # registration = pyfreenect2.Registration(kinect.color_camera_params, kinect.ir_camera_params)
 # registration = pyfreenect2.Registration()
-
-# Initialize OpenCV stuff
-# cv2.namedWindow("RGB")
-# cv2.namedWindow("IR")
 
 # Main loop
 
@@ -230,12 +219,8 @@ while not shutdown:
 
     process_image(bgr_frame_new, depth_frame, net, gaze)
 
-    # TODO Display the frames w/ OpenCV
-    # cv2.imshow("RGB", bgr_frame_resize)
-    # cv2.imshow("Depth", depth_frame)
     cv2.waitKey(20)
     frameListener.release(frames)
-
 
 kinect.stop()
 kinect.close()
