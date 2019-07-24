@@ -36,7 +36,9 @@ or add them to your `~/.bashrc`
 
 #### Vision
 Read the documentation for [YOLO](https://github.com/mclumd/yolo) to run the detection script.
-Download [yolov3.weights](https://pjreddie.com/media/files/yolov3.weights) into the `/scripts` directory
+Download [yolov3.weights](https://pjreddie.com/media/files/yolov3.weights) into the `/scripts` directory.
+
+Gaze Detection is done with a modified version of [this repo](https://github.com/antoinelame/GazeTracking). You will need to `sudo pip install dlib opencv-python numpy`. Be sure to use OpenCV4, not 3 as it says in the linked repo.
 
 #### ALMA
-You might need to rebuild [ALMA](https://github.com/mclumd/alma-2.0) if you modify the `alma.c` file.
+[ALMA](https://github.com/mclumd/alma-2.0) is included as a submodule. After initializing, you will need to run `make` in the `/alma` directory.
