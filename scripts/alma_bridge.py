@@ -75,8 +75,14 @@ def loop():
     # print("exited on:" + output + ":e")
     while not idle:
         # print("loop")
-        # print(idle)
-
+        print(idle)
+        alma.stdin.write('step\n')
+        # alma.stdin.write('\n')
+        output = alma.stdout.readline()
+        if "Idling..." in output:
+            # print("setting idle")
+            idle = True
+        print(output)
         # print("printing:")
         alma.stdin.write('print\n')
         output = alma.stdout.readline()
@@ -98,12 +104,7 @@ def loop():
         # print("half")
         # idle=True
 
-        alma.stdin.write('step\n')
-        alma.stdin.write('\n')
-        output = alma.stdout.readline()
-        if "Idling..." in output:
-            # print("setting idle")
-            idle = True
+
         """while output != "\n" and not idle:
             print("a"+output+"ab")
             if "Idling..." in output:
