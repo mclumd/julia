@@ -1,7 +1,7 @@
 # Julia Demo
 
 ## Installation
-Ensure the Baxter and Workstation are setup as described here: http://sdk.rethinkrobotics.com/wiki/Workstation_Setup
+Ensure the Baxter and Workstation are setup as described [here](http://sdk.rethinkrobotics.com/wiki/Workstation_Setup).
 
 For Ubuntu 14.04:
 ```
@@ -14,7 +14,7 @@ Ensure system audio settings have the correct speakers and microphone chosen.
 Clone this repo into `~/ros_ws/src` and run `catkin_make`
 
 ## Running
-If everything is setup acccording to this guide: http://sdk.rethinkrobotics.com/wiki/Workstation_Setup
+If everything is setup acccording to [this guide](http://sdk.rethinkrobotics.com/wiki/Workstation_Setup):
 ```
 cd ~/ros_ws
 . baxter.sh
