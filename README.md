@@ -1,7 +1,7 @@
 # Julia Demo
 
 ## Installation
-Ensure the Baxter and Workstation are setup as described here: http://sdk.rethinkrobotics.com/wiki/Workstation_Setup
+Ensure the Baxter and Workstation are setup as described [here](http://sdk.rethinkrobotics.com/wiki/Workstation_Setup).
 
 For Ubuntu 14.04:
 ```
@@ -14,7 +14,7 @@ Ensure system audio settings have the correct speakers and microphone chosen.
 Clone this repo into `~/ros_ws/src` and run `catkin_make`
 
 ## Running
-If everything is setup acccording to this guide: http://sdk.rethinkrobotics.com/wiki/Workstation_Setup
+If everything is setup acccording to [this guide](http://sdk.rethinkrobotics.com/wiki/Workstation_Setup):
 ```
 cd ~/ros_ws
 . baxter.sh
@@ -36,7 +36,9 @@ or add them to your `~/.bashrc`
 
 #### Vision
 Read the documentation for [YOLO](https://github.com/mclumd/yolo) to run the detection script.
-Download [yolov3.weights](https://pjreddie.com/media/files/yolov3.weights) into the `/scripts` directory
+Download [yolov3.weights](https://pjreddie.com/media/files/yolov3.weights) into the `/scripts` directory.
+
+Gaze Detection is done with a modified version of [this repo](https://github.com/antoinelame/GazeTracking). You will need to `sudo pip install dlib opencv-python numpy`. Be sure to use OpenCV4, not 3 as it says in the linked repo.
 
 #### ALMA
-You might need to rebuild [ALMA](https://github.com/mclumd/alma-2.0) if you modify the `alma.c` file.
+[ALMA](https://github.com/mclumd/alma-2.0) is included as a submodule. After initializing, you will need to run `make` in the `/alma` directory.
