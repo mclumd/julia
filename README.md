@@ -46,6 +46,12 @@ If everything is setup acccording to [this guide](http://sdk.rethinkrobotics.com
 cd ~/ros_ws
 . baxter.sh
 roslaunch julia demo.launch
+# In a second terminal
+cd ~/ros_ws
+. baxter.sh
+rosrun julia alma_bridge.py
 ```
+With two terminals, the ALMA output is separate from the ROS output, though the demo can be run as one program if `alma_bridge.py` is added to the `demo.launch` file.
+
 Note that to run anything in the `scripts` directory using `rosrun`, you will need to make the python files executable.
 When writing new python files, `#!/usr/bin/env python` must be included at the beginning of the file.
