@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-#######3run roscore, then in new terminal baxter sh run soundplay node, then in new terminal bbaxter sh run this
+#######3run roscore, then in new terminal , baxter,sh run soundplay node, then in new terminal , baxter.sh run this
 ####Run  roscore in a regular terminal
-##open second, run baxter sh, then enable robot, then run soundplay node
+##open second, run , baxter,sh, then enable robot, then run soundplay node
 ####
 
 ####install ros
@@ -49,7 +49,7 @@ def main():
     global listener
 
     listener = rospy.Subscriber('/recognizer/output', String, point)
-    rospy.Subscriber("actions", String, update)
+    # rospy.Subscriber("actions", String, update)
     rospy.Subscriber("alma", String, alma)
 
     rospy.spin()
@@ -82,10 +82,9 @@ def point(data):
     rospy.loginfo(data.data)
     rospy.loginfo(current_actions)
     if 'julia' in data.data:
-
-        alma_comm.publish("hearing(julia)")
-        if not "talking" in current_actions:
-            alma_comm.publish("not(talking)")
+        alma_comm.publish("obs hearing(julia).\n")
+        # if not "talking" in current_actions:
+        # alma_comm.publish("not(talking)")
 
         # raise_arm()
         # speak("I see julia and am pointing at her")

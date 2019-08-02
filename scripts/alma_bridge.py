@@ -30,7 +30,7 @@ def main():
 
 def flush():
     output = alma.stdout.readline()
-    while output != "\n" and not "added" in output:
+    while output != "\n" and not "added" in output and not "observed" in output:
         # while not "alma:" in output:
         print(output)
         output = alma.stdout.readline()
@@ -62,31 +62,25 @@ def loop():
     while not "q" in usin:
         print(alma.stdout.readline())
         usin=raw_input("hey")
-
         """
     global looping
     looping = True
     idle = False
     output = alma.stdout.readline()
-    while output != "\n" and not "added" in output and not "removed" in output:
+    while output != "\n" and not "added" in output and not "removed" in output and not "observed" in output:
         # while not "alma:" in output:
         print(output)
         output = alma.stdout.readline()
     # print("exited on:" + output + ":e")
     while not idle:
         # print("loop")
-        print(idle)
-        alma.stdin.write('step\n')
-        # alma.stdin.write('\n')
-        output = alma.stdout.readline()
-        if "Idling..." in output:
-            # print("setting idle")
-            idle = True
-        print(output)
+        # print(idle)
+
         # print("printing:")
         alma.stdin.write('print\n')
         output = alma.stdout.readline()
-        while output != "\n" and not "added" in output:
+        roscommands = []
+        while output != "\n" and not "added" in output and not "observed" in output:
             # while not "alma:" in output:
             print(output)
             if len(output.split(": ros(")) > 1:
@@ -95,16 +89,30 @@ def loop():
                 # print(find_parens(output))
                 # print(output[:find_parens(output)[0]])
                 if output[:find_parens(output)[0] + 1] == output:
-                    print("ROS COMMAND: " + output[1:-1])
-                    pub.publish(output[1:-1])
-                    #alma.stdin.write('del ros(' + output[1:-1] + ').\n')
+                    roscommands.append(output[1:-1])
+
+                    # print("ROS COMMAND: " + output[1:-1])
+                    # pub.publish(output[1:-1])
+
+                    # alma.stdin.write('del ros(' + output[1:-1] + ').\n')
+            if len(output.split(": now(")) > 1:
+                t = output.split(": now(")[1].split(")")[0]
+                for command in roscommands:
+                    if command.split("),")[1].strip() == str(int(t) - 1):
+                        print("ROS COMMAND: " + command.split(",")[0])
+                        pub.publish(command.split(")")[0] + ")")
 
             output = alma.stdout.readline()
         # print("exited on:" + output + ":e")
         # print("half")
         # idle=True
 
-
+        alma.stdin.write('step\n')
+        alma.stdin.write('\n')
+        output = alma.stdout.readline()
+        if "Idling..." in output:
+            # print("setting idle")
+            idle = True
         """while output != "\n" and not idle:
             print("a"+output+"ab")
             if "Idling..." in output:
@@ -116,7 +124,7 @@ def loop():
         """
         if len(output.split(": "))>1 and output.split(": ")[1][:3]=="ros(":
             pub.publish(output.split(": ")[1])
-        
+
         if not output:
             print('[No more data]')
             break
@@ -131,7 +139,7 @@ def loop():
 def add(data):
     # print("a"+data.data+"a")
     # print(looping)
-    alma.stdin.write("add " + data.data + ".\n")
+    alma.stdin.write(data.data)
     if not looping:
         loop()
 

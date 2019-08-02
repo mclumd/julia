@@ -13,7 +13,7 @@ from std_msgs.msg import String
 from sensor_msgs.msg import Image
 
 rospy.init_node('vision')
-pub = rospy.Publisher('vision', String, queue_size=10)
+pub = rospy.Publisher('alma_in', String, queue_size=10)
 videoPub = rospy.Publisher('/robot/xdisplay', Image, latch=True)
 
 # 'path to yolo config file'
@@ -128,13 +128,16 @@ def process_image(image, depth, net, gaze):
             image[y:y + h, x:x + w] = gaze.annotated_frame()
 
             if gaze.pupils_located:
-                cv2.putText(image, "pupil x: " + str(round(gaze.horizontal_ratio(), 3)) + " y: " + str(
-                    round(gaze.vertical_ratio(), 3)), (int(x + w - 200), y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                            COLORS[class_ids[i]], 2)
+                try:
+                    cv2.putText(image, "pupil x: " + str(round(gaze.horizontal_ratio(), 3)) + " y: " + str(
+                        round(gaze.vertical_ratio(), 3)), (int(x + w - 200), y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                                COLORS[class_ids[i]], 2)
+                except ZeroDivisionError:
+                    pass
 
         pub.publish(
-            "saw(" + str(classes[class_ids[i]]) + "," + str(round(confidences[i], 3)) + "," + str(int(x)) + "," + str(
-                int(y)) + "," + str(int(w)) + "," + str(int(h)) + ")")
+            "obs saw(" + str(classes[class_ids[i]]) + "," + str(int(100*confidences[i])) + "," + str(int(x)) + "," + str(
+                int(y)) + "," + str(int(w)) + "," + str(int(h)) + ").\n")
 
         draw_bounding_box(image, class_ids[i], confidences[i], int(x), int(y), int(x + w), int(y + h))
         draw_bounding_box(ann, class_ids[i], confidences[i], int((x + w / 2) * 512 / 1920),
