@@ -36,7 +36,12 @@ When pulling, to pull all changes in the repo including changes in the submodule
 To pull all changes for the submodules only,
 `git submodule update --remote`
 
-
+Or just: 
+```
+cd alma
+git pull
+make
+```
 ## Running
 Make sure you `source /opt/ros/indigo/setup.bash` and `source ~/ros_ws/devel/setup.bash` or add them to your `~/.bashrc`.
 
