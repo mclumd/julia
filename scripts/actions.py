@@ -1,11 +1,21 @@
 #!/usr/bin/env python
-# license removed for brevity
+
+"""
+Library of functions for Baxters
+
+Each action will communicate with alma when it starts and stops
+
+
+Right now it signals a finished action with not(action), which triggers a contradiction and distrusts both
+This is kind of a hack until ALMA has something to signal when an action is done, to put it in history
+Right now distrust is being used as a history container
+"""
+
 import rospy
 from std_msgs.msg import String
 import baxter_interface
 from sound_play.libsoundplay import SoundClient
 
-# pub = rospy.Publisher('actions', String, queue_size=10)
 pub = rospy.Publisher('alma_in', String, queue_size=10)
 
 

@@ -1,47 +1,42 @@
 #!/usr/bin/env python
-import re
+
+"""
+
+ROS Node to run ALMA
+Passes commands from /alma_in rostopic to ALMA command line
+Evaluates ROS commands that are the only predicate in the line
+
+If you get an error about command not recognized and when you quit terminal it prints a bunch of empty lines,
+You probably forgot a command at the beginning (add, obs), a . at the end, or a \n at the end
+Also, if ALMA doesn't idle correctly, this will keep running
+
+"""
+
 import subprocess
 import rospy
 from std_msgs.msg import String
-import sys
-
-# subprocess.call(["ls", "-l"])
-# subprocess.call("./../alma.alma.x")
+from actions import *
 
 alma = subprocess.Popen(["./alma.x", "demo/julia.pl"], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                         stderr=subprocess.STDOUT, shell=False, cwd="/home/mcl/ros_ws/src/julia/alma/")
-pub = rospy.Publisher('alma', String, queue_size=10)
 looping = False
 
 
-def main():
-    # alma.stdin.write('halt\n')
-    # print(alma.communicate(input=b'print')[0])
 
-    """alma.stdin.write('print\n')
-    while alma.stdout.readline()!="alma: Idling...\n":
-        alma.stdin.write('step\n')
-    print("out")"""
+
+# Basic logic:
+# ALMA will keep stepping until idling
+# Then it will wait until something is added
+# But adding can still happen at any time, so it doesn't have to be idling to add something
+# "Add" here meaning feed some input to the ALMA command line
+def main():
     rospy.init_node('almabridge')
     rospy.Subscriber("alma_in", String, add)
     loop()
     rospy.spin()
 
 
-def flush():
-    output = alma.stdout.readline()
-    while output != "\n" and not "added" in output and not "observed" in output:
-        # while not "alma:" in output:
-        print(output)
-        output = alma.stdout.readline()
-    # print("exited on:"+output+":e")
-    """
-    usin=""
-    while not "q" in usin:
-        usin=raw_input("go now")
-        print(alma.stdout.readline())"""
-
-
+# Match up parentheses so we can figure out if a line is just a single ROS command
 def find_parens(s):
     toret = {}
     pstack = []
@@ -50,33 +45,33 @@ def find_parens(s):
         if c == '(':
             pstack.append(i)
         elif c == ')':
-
             toret[pstack.pop()] = i
 
     return toret
 
 
 def loop():
-    """
-    usin=""
-    while not "q" in usin:
-        print(alma.stdout.readline())
-        usin=raw_input("hey")
-        """
     global looping
     looping = True
     idle = False
     output = alma.stdout.readline()
+    # Ugh this is bad
+    # step and print end in a newline, so they're fine
+    # However, these others print just one line saying "____ added" or something similar
+    # So we need to check for those
+    # If a new ALMA command gets added that acts like these, then:
+    # it would need to be added,
+    # ALMA would need to change its output,
+    # or this would need to be handled better
+
+    # Flush output from a prior command
     while output != "\n" and not "added" in output and not "removed" in output and not "observed" in output:
-        # while not "alma:" in output:
         print(output)
         output = alma.stdout.readline()
-    # print("exited on:" + output + ":e")
-    while not idle:
-        # print("loop")
-        # print(idle)
 
-        # print("printing:")
+    while not idle:
+
+        # print, read through for any ROS commands, then step
         alma.stdin.write('print\n')
         output = alma.stdout.readline()
         roscommands = []
@@ -85,61 +80,37 @@ def loop():
             print(output)
             if len(output.split(": ros(")) > 1:
                 output = output.split(": ros")[1].split("(parents:")[0].strip()
-                # print("ros::"+output)
-                # print(find_parens(output))
-                # print(output[:find_parens(output)[0]])
+                # This will only consider a ros command if the line is a single command
+                # e.g. ros(speak())
+                # Note that the commands need parens like a function would
                 if output[:find_parens(output)[0] + 1] == output:
+                    # We need to check if these are for the current time step
+                    # But now() is always the last printed, so hold onto these until we know what time it is
                     roscommands.append(output[1:-1])
 
-                    # print("ROS COMMAND: " + output[1:-1])
-                    # pub.publish(output[1:-1])
-
-                    # alma.stdin.write('del ros(' + output[1:-1] + ').\n')
+            # Find now()
             if len(output.split(": now(")) > 1:
                 t = output.split(": now(")[1].split(")")[0]
                 for command in roscommands:
+                    # Only evaluate a ROS command if it's for the current time (actually time-1)
                     if command.split("),")[1].strip() == str(int(t) - 1):
                         print("ROS COMMAND: " + command.split(",")[0])
-                        pub.publish(command.split(")")[0] + ")")
+                        eval(command.split(")")[0] + ")")
 
             output = alma.stdout.readline()
-        # print("exited on:" + output + ":e")
-        # print("half")
-        # idle=True
 
         alma.stdin.write('step\n')
         alma.stdin.write('\n')
         output = alma.stdout.readline()
         if "Idling..." in output:
-            # print("setting idle")
             idle = True
-        """while output != "\n" and not idle:
-            print("a"+output+"ab")
-            if "Idling..." in output:
-                print("setting idle")
-                idle=True
-            else:
-                output = alma.stdout.readline()"""
 
-        """
-        if len(output.split(": "))>1 and output.split(": ")[1][:3]=="ros(":
-            pub.publish(output.split(": ")[1])
-
-        if not output:
-            print('[No more data]')
-            break
-            """
-
-        # if output !="\n":
-        # print("here")
     looping = False
-    # print("done looping")
 
 
 def add(data):
-    # print("a"+data.data+"a")
-    # print(looping)
     alma.stdin.write(data.data)
+    # If it was idling, start up again because of new information
     if not looping:
         loop()
 
@@ -149,8 +120,3 @@ if __name__ == '__main__':
         main()
     except rospy.ROSInterruptException:
         pass
-
-###write something to keep printing alma, filter out the ros stuff and publish it
-####dont inherit stuff with ros symbol
-
-#####add hearing
