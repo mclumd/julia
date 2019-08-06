@@ -43,6 +43,13 @@ git pull
 make
 ```
 ## Running
+
+#### Hardware (Baxter)
+You need to be connected to the same network as the Baxters. Right now they only connect over wired Ethernet until someone figures out how they can connect wirelessly. However, your computer can connect wirelessly to the network they are plugged into. The network is mcl_avw, and is hidden.
+
+To turn on the Baxters, first close the red Main Breaker on the back bottom of the mobility base. Then press (don't hold) the black rubber power button on the top right back of the mobility base. When the red indicator light next to it is flashing twice, it's on and stable. Then switch on the power inverter on the back of the Baxter. Finally, press (don't hold) the white power button on the back of the Baxter's left hip. The Baxter will take a while to start up. When the display shows a static Rethink Robotics logo and there is a green halo on Baxter's head, it is ready.
+
+#### Software
 Make sure you `source /opt/ros/indigo/setup.bash` and `source ~/ros_ws/devel/setup.bash` or add them to your `~/.bashrc`.
 
 If everything is setup acccording to [this guide](http://sdk.rethinkrobotics.com/wiki/Workstation_Setup):
