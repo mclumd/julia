@@ -47,9 +47,13 @@ make
 #### Hardware (Baxter)
 You need to be connected to the same network as the Baxters. Right now they only connect over wired Ethernet until someone figures out how they can connect wirelessly. However, your computer can connect wirelessly to the network they are plugged into. The network is mcl_avw, and is hidden.
 
-To turn on the Baxters, first close the red Main Breaker on the back bottom of the mobility base. Then press (don't hold) the black rubber power button on the top right back of the mobility base. When the red indicator light next to it is flashing twice, it's on and stable. Then switch on the power inverter on the back of the Baxter. Finally, press (don't hold) the white power button on the back of the Baxter's left hip. The Baxter will take a while to start up. When the display shows a static Rethink Robotics logo and there is a green halo on Baxter's head, it is ready.
+To turn on the Baxters, first close the red Main Breaker on the back bottom of the mobility base. Then press (don't hold) the black rubber power button on the top right back of the mobility base. When the red indicator light next to it is flashing twice, it's on and stable. Then switch on the power inverter on the back of the Baxter. Finally, press (don't hold) the white power button on the back of the Baxter's left hip. The Baxter will take a while to start up. When the display shows a static Rethink Robotics logo and there is a green halo on Baxter's head, it is ready. To turn off, do these steps in reverse. Always make sure each thing finishes turning off before turning off the next thing.
+
+Sometimes, the inverter will start screaming like crazy. A fix for this would be to turn everything off but keep the breaker closed and leave it overnight.
 
 #### Software
+If using the mcltower machine in the corner, make sure to boot into Ubuntu 14.04.
+
 Make sure you `source /opt/ros/indigo/setup.bash` and `source ~/ros_ws/devel/setup.bash` or add them to your `~/.bashrc`.
 
 If everything is setup acccording to [this guide](http://sdk.rethinkrobotics.com/wiki/Workstation_Setup):
