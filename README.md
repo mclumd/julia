@@ -75,3 +75,8 @@ Usually a `Ctrl-c` and running again will solve it, but sometimes it helps to ru
 Check the system settings to make sure the default mic and speakers are what you want them to be. Sometimes it will recognize if you start talking as soon as the program starts, but sometimes it only works if you stay silent while the program starts and wait for 5 seconds. Seems to be a pocketsphinx bug.
 
 
+## Explanation
+
+When it recognizes the word "Julia," it adds `hearing(julia)` to ALMA. 
+
+At the time step ALMA receives `hearing(julia)`, if `talking` is not present in the knowledge base (meaning the Baxter isn't talking), and it has seen a person ("Julia"), it will point to the last place it saw that person, and say "I see Julia and am pointing at her." 
