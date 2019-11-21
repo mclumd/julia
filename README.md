@@ -11,10 +11,15 @@ sudo apt-get install gstreamer0.10-pocketsphinx
 ```
 Ensure system audio settings have the correct speakers and microphone chosen.
 
+From a directory named src:
+
 ```
-cd ~/ros_ws/src
 git clone --recursive https://github.com/mclumd/julia.git
 git submodule update --init
+```
+
+From the parent directory of src:
+```
 catkin_make
 ```
 
@@ -54,16 +59,14 @@ Sometimes, the inverter will start screaming like crazy. A fix for this would be
 #### Software
 If using the mcltower machine in the corner, make sure to boot into Ubuntu 14.04.
 
-Make sure you `source /opt/ros/indigo/setup.bash` and `source ~/ros_ws/devel/setup.bash` or add them to your `~/.bashrc`.
+Make sure you `source /opt/ros/indigo/setup.bash` and `source ./devel/setup.bash` or add them to your `~/.bashrc`.
 
-If everything is setup acccording to [this guide](http://sdk.rethinkrobotics.com/wiki/Workstation_Setup):
+If everything is setup acccording to [this guide](http://sdk.rethinkrobotics.com/wiki/Workstation_Setup), from the directory above src:
 
 ```
-cd ~/ros_ws
 . baxter.sh
 roslaunch julia demo.launch
 # In a second terminal
-cd ~/ros_ws
 . baxter.sh
 rosrun julia alma_bridge.py
 ```

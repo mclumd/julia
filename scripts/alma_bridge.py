@@ -15,10 +15,9 @@ Also, if ALMA doesn't idle correctly, this will keep running
 import subprocess
 import rospy
 from std_msgs.msg import String
-from actions import *
 
 alma = subprocess.Popen(["./alma.x", "demo/julia.pl"], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                        stderr=subprocess.STDOUT, shell=False, cwd="/home/mcl/ros_ws/src/julia/alma/")
+                        stderr=subprocess.STDOUT, shell=False, cwd="./src/julia/alma/")
 looping = False
 
 
