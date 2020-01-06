@@ -1,11 +1,9 @@
 #include <stdlib.h>
 #include "alma_command.h"
-#include "tommyds/tommyds/tommytypes.h"
-#include "tommyds/tommyds/tommyarray.h"
-#include "tommyds/tommyds/tommyhashlin.h"
-#include "tommyds/tommyds/tommylist.h"
-#include "alma_kb.h"
+#include "tommy.h"
 #include "alma_formula.h"
+#include "alma_backsearch.h"
+#include "alma_fif.h"
 #include "alma_parser.h"
 #include "alma_print.h"
 
@@ -97,19 +95,12 @@ static int idling_check(kb *collection) {
 void kb_step(kb *collection) {
   collection->time++;
 
-  collection->now_str = now(collection->time);
-  assert_formula(collection, collection->now_str, 0);
-  if (collection->prev_str != NULL) {
-    delete_formula(collection, collection->prev_str, 0);
-    free(collection->prev_str);
-  }
-  else
-    delete_formula(collection, "now(1).", 0);
-  collection->prev_str = collection->now_str;
-
   process_res_tasks(collection, &collection->res_tasks, &collection->new_clauses, NULL);
   process_fif_tasks(collection);
   process_backsearch_tasks(collection);
+
+  collection->now_str = now(collection->time);
+  assert_formula(collection, collection->now_str, 0);
 
   fif_to_front(&collection->new_clauses);
   // Insert new clauses derived that are not duplicates
@@ -117,6 +108,9 @@ void kb_step(kb *collection) {
     clause *c = tommy_array_get(&collection->new_clauses, i);
     clause *dupe = duplicate_check(collection, c);
     if (dupe == NULL) {
+      if (c->tag == FIF)
+        fif_task_map_init(collection, c);
+
       res_tasks_from_clause(collection, c, 1);
       fif_tasks_from_clause(collection, c);
 
@@ -166,8 +160,15 @@ void kb_step(kb *collection) {
     i = i->next;
   }
 
-  if (idling_check(collection))
-    collection->idling = 1;
+  if (collection->prev_str != NULL) {
+    delete_formula(collection, collection->prev_str, 0);
+    free(collection->prev_str);
+  }
+  else
+    delete_formula(collection, "now(1).", 0);
+  collection->prev_str = collection->now_str;
+
+  collection->idling = idling_check(collection);
 
   if (collection->idling)
     printf("Idling...\n");
@@ -266,6 +267,42 @@ void kb_remove(kb *collection, char *string) {
   delete_formula(collection, string, 1);
 }
 
+void kb_observe(kb *collection, char *string) {
+  // Parse string into clauses
+  alma_node *formulas;
+  int formula_count;
+  if (formulas_from_source(string, 0, &formula_count, &formulas)) {
+    tommy_array arr;
+    tommy_array_init(&arr);
+    nodes_to_clauses(formulas, formula_count, &arr, 0);
+
+    for (int i = 0; i < tommy_array_size(&arr); i++) {
+      clause *c = tommy_array_get(&arr, i);
+      if (c->pos_count + c->neg_count == 1) {
+        alma_function *lit = (c->pos_count == 1) ? c->pos_lits[0] : c->neg_lits[0];
+        lit->term_count++;
+        lit->terms = realloc(lit->terms, sizeof(*lit->terms)*lit->term_count);
+        alma_term time_term;
+        time_term.type = FUNCTION;
+        time_term.function = malloc(sizeof(*time_term.function));
+        time_term.function->name = long_to_str(collection->time);
+        time_term.function->term_count = 0;
+        time_term.function->terms = NULL;
+        lit->terms[lit->term_count-1] = time_term;
+        tommy_array_insert(&collection->new_clauses, c);
+        clause_print(c);
+        printf(" observed\n");
+      }
+      else {
+        clause_print(c);
+        printf(" has too many literals\n");
+        free_clause(c);
+      }
+    }
+    tommy_array_done(&arr);
+  }
+}
+
 void kb_backsearch(kb *collection, char *string) {
   // Parse string into clauses
   alma_node *formulas;
@@ -273,23 +310,25 @@ void kb_backsearch(kb *collection, char *string) {
   if (formulas_from_source(string, 0, &formula_count, &formulas)) {
     tommy_array arr;
     tommy_array_init(&arr);
-    flatten_node(formulas, &arr, 0);
-    clause *c = tommy_array_get(&arr, 0);
+    nodes_to_clauses(formulas, formula_count, &arr, 0);
 
-    for (int i = 0; i < formula_count; i++)
-      free_alma_tree(formulas+i);
-    free(formulas);
+    clause *c = tommy_array_get(&arr, 0);
+    // Free all after first
     for (int i = 1; i < tommy_array_size(&arr); i++)
       free_clause(tommy_array_get(&arr, i));
     tommy_array_done(&arr);
-
-    if (c->pos_count + c->neg_count > 1) {
-      printf("query clause has too many literals\n");
-      free_clause(c);
-    }
-    else {
-      collection->idling = 0;
-      backsearch_from_clause(collection, c);
+    if (c != NULL) {
+      if (c->pos_count + c->neg_count > 1) {
+        printf("query clause has too many literals\n");
+        free_clause(c);
+      }
+      else {
+        collection->idling = 0;
+        backsearch_from_clause(collection, c);
+        printf("Backsearch initiated for ");
+        clause_print(c);
+        printf("\n");
+      }
     }
   }
 }

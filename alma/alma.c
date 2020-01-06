@@ -10,6 +10,7 @@
 long long variable_id_count = 0;
 
 int main(int argc, char **argv) {
+  setvbuf(stdout, NULL, _IONBF, 0);
   if (argc <= 1) {
     printf("Please run with an input file argument.\n");
     return 0;
@@ -62,6 +63,12 @@ int main(int argc, char **argv) {
           char *assertion = malloc(len - 4);
           strncpy(assertion, line+4, len-4);
           kb_remove(alma_kb, assertion);
+          free(assertion);
+        }
+        else if ((pos = strstr(line, "obs ")) != NULL && pos == line) {
+          char *assertion = malloc(len - 4);
+          strncpy(assertion, line+4, len-4);
+          kb_observe(alma_kb, assertion);
           free(assertion);
         }
         else if ((pos = strstr(line, "bs ")) != NULL && pos == line) {

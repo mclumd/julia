@@ -18,6 +18,12 @@ from sound_play.libsoundplay import SoundClient
 
 pub = rospy.Publisher('alma_in', String, queue_size=10)
 
+lowered_angles = None
+
+def init_lowered_angles():
+    global lowered_angles
+    lowered_angles = baxter_interface.Limb('right').joint_angles()
+    print(lowered_angles)
 
 def raise_arm(x, y):
     pub.publish("add raising_arm.\n")
@@ -30,6 +36,12 @@ def raise_arm(x, y):
          'right_w2': 0.0019634954081253035})
     pub.publish("add not(raising_arm).\n")
 
+def lower_arm():
+    global lowered_angles
+    pub.publish("add lowering_arm.\n")
+    baxter_interface.Limb('right').move_to_joint_positions(lowered_angles)
+    pub.publish("add not(lowering_arm).\n")
+
 
 def speak(text="I see julia and am pointing at her"):
     pub.publish("add talking.\n")
@@ -37,4 +49,5 @@ def speak(text="I see julia and am pointing at her"):
     soundhandle = SoundClient()
     soundhandle.say(text, voice, blocking=True)
     soundhandle.say("", voice, blocking=True)
+    lower_arm()
     pub.publish("add not(talking).\n")

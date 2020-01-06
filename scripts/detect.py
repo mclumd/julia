@@ -11,7 +11,8 @@ import pyfreenect2
 import cv2
 import signal
 import numpy as np
-import os
+import os, sys
+import time
 from gaze_tracking import GazeTracking
 
 import rospy
@@ -19,8 +20,13 @@ import cv_bridge
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 
+
+old_class_ids = []
+old_conf = []
+old_indices = []
+old_boxes = []
 rospy.init_node('vision')
-pub = rospy.Publisher('alma_in', String, queue_size=10)
+pub = rospy.Publisher('alma_in', String, queue_size=1)
 videoPub = rospy.Publisher('/robot/xdisplay', Image, latch=True)
 
 # 'path to yolo config file'
@@ -69,6 +75,7 @@ def draw_bounding_box(img, class_id, confidence, x, y, x_plus_w, y_plus_h):
 
 
 def process_image(image, depth, net, gaze):
+    global old_class_ids, old_conf, old_indices, old_boxes
     width = image.shape[1]
     height = image.shape[0]
 
@@ -109,7 +116,24 @@ def process_image(image, depth, net, gaze):
 
     # go through the detections remaining
     # after nms and draw bounding box
-    ann = cv2.cvtColor(depth, cv2.COLOR_BGRA2BGR)
+#    ann = cv2.cvtColor(depth, cv2.COLOR_BGRA2BGR)
+    for i in old_indices:
+        i = i[0]
+        box = old_boxes[i]
+        x = max(0, box[0])
+        y = max(0, box[1])
+        w = max(0, box[2])
+        h = max(0, box[3])
+        if str(classes[old_class_ids[i]]) == "person":
+            pub.publish(
+                "add not(saw(" + str(classes[old_class_ids[i]]) + "," + str(int(100*old_conf[i])) + "," + str(int(x + w/2)) + "," + str(
+                    int(y)) + "," + str(int(w)) + "," + str(int(h)) + ")).\n")
+    
+    old_indices = indices
+    old_boxes = boxes
+    old_conf = confidences
+    old_class_ids = class_ids
+
     for i in indices:
         i = i[0]
         box = boxes[i]
@@ -136,35 +160,40 @@ def process_image(image, depth, net, gaze):
         """
 
         # Gaze Detection
-        if str(classes[class_ids[i]]) == "person":
+#        if str(classes[class_ids[i]]) == "person":
             # Run gaze detection only on the bounding box region of people
             # Somewhat redundant, as the gaze detection does face recognition as well
             # Seems necessary though, as it won't detect multiple people, and it needs the face data to determine direction
-            gaze.refresh(image[y:y + h, x:x + w])
+#            gaze.refresh(image[y:y + h, x:x + w])
 
             # Place green crosses on eyes
-            image[y:y + h, x:x + w] = gaze.annotated_frame()
+#            image[y:y + h, x:x + w] = gaze.annotated_frame()
 
             # This is weird
             # Even if pupils_located is a success, the ratio methods subtract 10 from a denominator somewhere
             # So sometimes there's a divide by 0 error
             # This try catch is just to stop the program from dying, but sometimes it still does
             # It's dying when the video feeds freeze and go black and white
-            if gaze.pupils_located:
-                try:
-                    cv2.putText(image, "pupil x: " + str(round(gaze.horizontal_ratio(), 3)) + " y: " + str(
-                        round(gaze.vertical_ratio(), 3)), (int(x + w - 200), y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                                COLORS[class_ids[i]], 2)
-                except ZeroDivisionError:
-                    pass
+#            if gaze.pupils_located:
+#                try:
+#                    cv2.putText(image, "pupil x: " + str(round(gaze.horizontal_ratio(), 3)) + " y: " + str(
+#                        round(gaze.vertical_ratio(), 3)), (int(x + w - 200), y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+#                                COLORS[class_ids[i]], 2)
+#                except ZeroDivisionError:
+#                    pass
 
         # ALMA Communication
         # saw(label, confidence (50-100), center_X, center_Y, width, height, time)
         # Note that time gets added by ALMA because we use obs (see ALMA documentation)
-        # Still no depth
-        pub.publish(
-            "obs saw(" + str(classes[class_ids[i]]) + "," + str(int(100*confidences[i])) + "," + str(int(x)) + "," + str(
-                int(y)) + "," + str(int(w)) + "," + str(int(h)) + ").\n")
+        # Still no depth 
+#        pub.publish(
+#            "obs saw(" + str(classes[class_ids[i]]) + "," + str(int(100*confidences[i])) + "," + str(int(x + w/2)) + "," + str(
+#                int(y)) + "," + str(int(w)) + "," + str(int(h)) + ").\n")
+        if str(classes[class_ids[i]]) == "person":
+            pub.publish(
+                "add saw(" + str(classes[class_ids[i]]) + "," + str(int(100*confidences[i])) + "," + str(int(x + w/2)) + "," + str(
+                    int(y)) + "," + str(int(w)) + "," + str(int(h)) + ").\n")
+       #sys.stderr.write("Sent:   obs saw(" + str(classes[class_ids[i]]) + "," + str(int(100*confidences[i])) + "," + str(int(x + w/2)) + "," + str( int(y)) + "," + str(int(w)) + "," + str(int(h)) + ").\n")
 
         # Draws bounding box on color image
         # Math with passing parameters probably not optimal, but just some addition so not too time inefficient
@@ -173,14 +202,14 @@ def process_image(image, depth, net, gaze):
         # Draws small point at the center of every box on the depth image
         # These points don't seem to match up; depth sensor and color sensor aren't the same aspect ratio or FOV
         # Some kinect drivers have the ability to flatten it out or get real space coordinates
-        draw_bounding_box(ann, class_ids[i], confidences[i], int((x + w / 2) * 512 / 1920),
-                          int((y + h / 2) * 424 / 1080), 5 + int((x + w / 2) * 512 / 1920),
-                          5 + int((y + h / 2) * 424 / 1080))
+#        draw_bounding_box(ann, class_ids[i], confidences[i], int((x + w / 2) * 512 / 1920),
+#                          int((y + h / 2) * 424 / 1080), 5 + int((x + w / 2) * 512 / 1920),
+#                          5 + int((y + h / 2) * 424 / 1080))
 
     # display color and depth output on screen
     out_image_name = "color"  # + str(index)
     cv2.imshow(out_image_name, image)
-    cv2.imshow("depth", ann)
+#    cv2.imshow("depth", ann)
 
     #Send color output to Baxter screen
     msg = cv_bridge.CvBridge().cv2_to_imgmsg(cv2.resize(image, (1024, 600)), encoding="bgr8")
@@ -233,20 +262,20 @@ registration = pyfreenect2.Registration(kinect.ir_camera_params, kinect.color_ca
 # read pre-trained model and config file
 net = cv2.dnn.readNet(os.path.join(__location__, WEIGHTS), os.path.join(__location__, CONFIG))
 # Init gaze tracking
-gaze = GazeTracking()
+#gaze = GazeTracking()
 
 while not shutdown:
     frames = frameListener.waitForNewFrame()
     rgbFrame = frames.getFrame(pyfreenect2.Frame.COLOR)
     # IR stuff seems to be stubbed in pyfreenect2. Grrrr
     # irFrame = frames.getFrame(pyfreenect2.Frame.IR)
-    depthFrame = frames.getFrame(pyfreenect2.Frame.DEPTH)
+#    depthFrame = frames.getFrame(pyfreenect2.Frame.DEPTH)
     rgb_frame = rgbFrame.getRGBData()
     bgr_frame = rgb_frame.copy()
     bgr_frame[:, :, 0] = rgb_frame[:, :, 2]
     bgr_frame[:, :, 2] = rgb_frame[:, :, 0]
 
-    depth_frame = depthFrame.getDepthData()
+    depth_frame = None #depthFrame.getDepthData()
     # depth_frame = frames.getFrame(pyfreenect2.Frame.DEPTH).getDepthData()
     # bgr_frame_resize = scipy.misc.imresize(bgr_frame, size = .5)
     # depth_frame_resize = scipy.misc.imresize(depth_frame, size=.5)
@@ -260,10 +289,12 @@ while not shutdown:
     # process_image(cv2.resize(bgr_frame_new,(1024,600)))
 
     # Do the detection
+    gaze = None
     process_image(bgr_frame_new, depth_frame, net, gaze)
-
+    time.sleep(1)
     cv2.waitKey(20)
     frameListener.release(frames)
+    
 
 kinect.stop()
 kinect.close()

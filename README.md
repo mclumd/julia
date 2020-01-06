@@ -11,10 +11,15 @@ sudo apt-get install gstreamer0.10-pocketsphinx
 ```
 Ensure system audio settings have the correct speakers and microphone chosen.
 
+From a directory named src:
+
 ```
-cd ~/ros_ws/src
 git clone --recursive https://github.com/mclumd/julia.git
 git submodule update --init
+```
+
+From the parent directory of src:
+```
 catkin_make
 ```
 
@@ -43,16 +48,25 @@ git pull
 make
 ```
 ## Running
-Make sure you `source /opt/ros/indigo/setup.bash` and `source ~/ros_ws/devel/setup.bash` or add them to your `~/.bashrc`.
 
-If everything is setup acccording to [this guide](http://sdk.rethinkrobotics.com/wiki/Workstation_Setup):
+#### Hardware (Baxter)
+You need to be connected to the same network as the Baxters. Right now they only connect over wired Ethernet until someone figures out how they can connect wirelessly. However, your computer can connect wirelessly to the network they are plugged into. The network is mcl_avw, and is hidden.
+
+To turn on the Baxters, first close the red Main Breaker on the back bottom of the mobility base. Then press (don't hold) the black rubber power button on the top right back of the mobility base. When the red indicator light next to it is flashing twice, it's on and stable. Then switch on the power inverter on the back of the Baxter. Finally, press (don't hold) the white power button on the back of the Baxter's left hip. The Baxter will take a while to start up. When the display shows a static Rethink Robotics logo and there is a green halo on Baxter's head, it is ready. To turn off, do these steps in reverse. Always make sure each thing finishes turning off before turning off the next thing.
+
+Sometimes, the inverter will start screaming like crazy. A fix for this would be to turn everything off but keep the breaker closed and leave it overnight.
+
+#### Software
+If using the mcltower machine in the corner, make sure to boot into Ubuntu 14.04.
+
+Make sure you `source /opt/ros/indigo/setup.bash` and `source ./devel/setup.bash` or add them to your `~/.bashrc`.
+
+If everything is setup acccording to [this guide](http://sdk.rethinkrobotics.com/wiki/Workstation_Setup), from the directory above src:
 
 ```
-cd ~/ros_ws
 . baxter.sh
 roslaunch julia demo.launch
 # In a second terminal
-cd ~/ros_ws
 . baxter.sh
 rosrun julia alma_bridge.py
 ```
@@ -75,3 +89,8 @@ Usually a `Ctrl-c` and running again will solve it, but sometimes it helps to ru
 Check the system settings to make sure the default mic and speakers are what you want them to be. Sometimes it will recognize if you start talking as soon as the program starts, but sometimes it only works if you stay silent while the program starts and wait for 5 seconds. Seems to be a pocketsphinx bug.
 
 
+## Explanation
+
+When it recognizes the word "Julia," it adds `hearing(julia)` to ALMA. 
+
+At the time step ALMA receives `hearing(julia)`, if `talking` is not present in the knowledge base (meaning the Baxter isn't talking), and it has seen a person ("Julia"), it will point to the last place it saw that person, and say "I see Julia and am pointing at her." 
