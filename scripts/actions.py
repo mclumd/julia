@@ -14,7 +14,8 @@ Right now distrust is being used as a history container
 import rospy
 from std_msgs.msg import String
 import baxter_interface
-from sound_play.libsoundplay import SoundClient
+import os
+#from sound_play.libsoundplay import SoundClient
 
 pub = rospy.Publisher('alma_in', String, queue_size=10)
 
@@ -45,9 +46,10 @@ def lower_arm():
 
 def speak(text="I see julia and am pointing at her"):
     pub.publish("add talking.\n")
-    voice = 'voice_kal_diphone'
-    soundhandle = SoundClient()
-    soundhandle.say(text, voice, blocking=True)
-    soundhandle.say("", voice, blocking=True)
+#    voice = 'voice_kal_diphone'
+#    soundhandle = SoundClient()
+#    soundhandle.say(text, voice, blocking=True)
+#    soundhandle.say("", voice, blocking=True)
+    os.system("mpg321 julia.mp3")
     lower_arm()
     pub.publish("add not(talking).\n")
