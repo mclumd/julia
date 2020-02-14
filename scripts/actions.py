@@ -50,6 +50,6 @@ def speak(text="I see julia and am pointing at her"):
 #    soundhandle = SoundClient()
 #    soundhandle.say(text, voice, blocking=True)
 #    soundhandle.say("", voice, blocking=True)
-    os.system("mpg321 julia.mp3")
+    os.system("mpg321 /home/mcl/ros_ws/src/julia/scripts/julia.mp3")
     lower_arm()
     pub.publish("add not(talking).\n")
